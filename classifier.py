@@ -1,4 +1,4 @@
-def classify_crowd(count_avg, slow_ratio, X=50, Y=100, SH=0.5):
+def classify_crowd(count_avg, slow_ratio, X=60, Y=90, SH=0.5):
     
     if count_avg >= Y:
         return "TINGGI"
