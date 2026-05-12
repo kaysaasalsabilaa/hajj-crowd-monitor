@@ -107,16 +107,16 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;
   <div id="live-dot"></div>
   <span id="topbar-title">📡 Peta Pemantauan Keramaian</span>
   <span id="cnt-badge">0 titik aktif</span>
-  <span id="no-data-msg">Jalankan analisis untuk melihat data real-time →</span>
+  <span id="no-data-msg">Jalankan analisis untuk melihat data real-time</span>
 </div>
 <div id="map"></div>
 <div id="leaflet-err">🗺️ Peta tidak dapat dimuat<br>
   <span style="font-size:11px">Pastikan koneksi internet aktif</span></div>
 <div id="legend">
   <div class="leg-ttl">Level Keramaian</div>
-  <div class="leg-row"><div class="leg-dot" style="background:#D94040"></div>TINGGI — Intensif</div>
-  <div class="leg-row"><div class="leg-dot" style="background:#C9A84C"></div>SEDANG — Normal</div>
-  <div class="leg-row"><div class="leg-dot" style="background:#2ECC71"></div>RENDAH — Aman</div>
+  <div class="leg-row"><div class="leg-dot" style="background:#D94040"></div>TINGGI</div>
+  <div class="leg-row"><div class="leg-dot" style="background:#C9A84C"></div>SEDANG</div>
+  <div class="leg-row"><div class="leg-dot" style="background:#2ECC71"></div>RENDAH</div>
   <div class="leg-row"><div class="leg-dot" style="background:#3A7EA8"></div>Memulai...</div>
 </div>
 <script>
@@ -774,10 +774,8 @@ class DashboardPanel(QWidget):
         cg.setSpacing(12)
         self._c_count = MetricCard("👥", "Jumlah Orang",      "orang / window")
         self._c_slow  = MetricCard("🚶", "Slow Ratio",        "proporsi lambat")
-        self._c_ndef  = MetricCard("📐", "Track Terdefinisi", "track terukur")
         cg.addWidget(self._c_count, 0, 0)
         cg.addWidget(self._c_slow,  0, 1)
-        cg.addWidget(self._c_ndef,  0, 2)
         rl.addLayout(cg)
 
         brow = QHBoxLayout()
@@ -806,12 +804,6 @@ class DashboardPanel(QWidget):
         t1l.addWidget(self._tbl)
         self._itabs.addTab(t1, "📋 Data Window")
 
-        t2 = QWidget()
-        t2l = QVBoxLayout(t2)
-        t2l.setContentsMargins(0, 8, 0, 0)
-        self._chart = TrendChart()
-        t2l.addWidget(self._chart)
-        self._itabs.addTab(t2, "📈 Trend")
         rl.addWidget(self._itabs, 1)
 
         out = QWidget()
@@ -954,7 +946,6 @@ class DashboardPanel(QWidget):
         if not silent:
             self._c_count.set_value(row.get("count_avg"), f"{row.get('count_avg', 0):.1f}")
             self._c_slow.set_value(row.get("slow_ratio"),  f"{row.get('slow_ratio', 0):.3f}")
-            self._c_ndef.set_value(row.get("n_terdefinisi_total"))
             crowd = row.get("label_crowd", "")
             self._b_crowd.set_label(crowd)
             self._b_move.set_label(row.get("label_movement", ""))
@@ -979,12 +970,6 @@ class DashboardPanel(QWidget):
                     "#C02020" if val == "TERSENDAT" else "#1A7A50"
                 ))
             self._tbl.setItem(r, ci, item)
-
-        self._chart.add_point(
-            row.get("window_start", 0),
-            row.get("count_avg", 0),
-            row.get("slow_ratio", 0),
-        )
 
         if not silent:
             self._tbl.scrollToBottom()
@@ -1040,10 +1025,9 @@ class DashboardPanel(QWidget):
         self._name_usage = {}
 
         self._tbl.setRowCount(0)
-        self._chart.clear()
         self._alert.reset()
         self._live.setVisible(False)
-        for c in (self._c_count, self._c_slow, self._c_ndef):
+        for c in (self._c_count, self._c_slow):
             c.reset()
         self._b_crowd.reset()
         self._b_move.reset()

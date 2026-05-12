@@ -258,7 +258,7 @@ def run_pipeline(
                 feats["count_avg"], feats["slow_ratio"],
                 X=x_count, Y=y_count, SH=sh,
             )
-            label_movement = classify_movement(feats["slow_ratio"], SH=sh)
+            label_movement = classify_movement(feats["slow_ratio"], feats["count_avg"], x_count, SH=sh)
 
             row = {
                 "window_k":            feats["window_k"],

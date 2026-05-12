@@ -16,7 +16,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Hajj Crowd Monitor v4")
-        self.setMinimumSize(1100, 700)
+        self.setMinimumSize(800, 500)
         self.resize(1400, 860)
         self.setStyleSheet(APP_STYLE)
 

@@ -152,9 +152,13 @@ QScrollArea > QWidget > QWidget { background: transparent; }
 #btn_run {
     background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
         stop:0 #D9B65C, stop:1 #B89030);
-    color: #0F1F2E; border: none; border-radius: 10px;
-    font-size: 13px; font-weight: 800; padding: 13px 0; letter-spacing: 0.5px;
+    color: #0F1F2E;        /* ← ini harusnya keliatan di background gold */
+    border: none; border-radius: 10px;
+    font-size: 14px;       /* ← naikkan dari 13px */
+    font-weight: 800; padding: 13px 0; letter-spacing: 0.5px;
+    min-height: 46px;      /* ← tambah ini */
 }
+
 #btn_run:hover {
     background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
         stop:0 #EAC464, stop:1 #C9A03C);
@@ -163,12 +167,21 @@ QScrollArea > QWidget > QWidget { background: transparent; }
 #btn_run:disabled { background: #243F54; color: #3A6070; }
 
 #btn_stop {
-    background-color: transparent; color: #E07878;
-    border: 1.5px solid #E07878; border-radius: 10px;
-    font-size: 12px; font-weight: 700; padding: 10px 0;
+    background-color: rgba(217, 64, 64, 0.15);
+    color: #FF9090;             /* ← lebih terang */
+    border: 2px solid #FF6060; /* ← border lebih terang & tebal */
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 10px 0;
+    min-height: 38px;           /* ← tambah ini */
 }
 #btn_stop:hover    { background-color: #D94040; color: #FFFFFF; border-color: #D94040; }
-#btn_stop:disabled { color: #2A4F65; border-color: #2A4F65; }
+#btn_stop:disabled { 
+    color: #4A7A90;          /* ← lebih terang dari #2A4F65 */
+    border-color: #3A6070;   /* ← lebih terang */
+    background-color: rgba(255,255,255,0.03); 
+}
 
 #btn_browse {
     background-color: #1E3A4E; color: #90C4DC;

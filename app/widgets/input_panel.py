@@ -260,6 +260,7 @@ class InputPanel(QWidget):
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setMinimumHeight(0)
         form  = QWidget()
         fl    = QVBoxLayout(form)
         fl.setContentsMargins(16, 18, 16, 16)
@@ -392,15 +393,42 @@ class InputPanel(QWidget):
         self._run_btn = QPushButton("▶   Mulai Analisis")
         self._run_btn.setObjectName("btn_run")
         self._run_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._run_btn.setMinimumHeight(46)
+        self._run_btn.setMinimumHeight(38)
         self._run_btn.clicked.connect(self._on_run)
+        self._run_btn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
+                    stop:0 #D9B65C, stop:1 #B89030);
+                color: #0F1F2E;
+                border: none;
+                border-radius: 10px;
+                font-size: 13px;
+                font-weight: 800;
+                padding: 8px 0;
+            }
+            QPushButton:hover { background-color: #EAC464; }
+            QPushButton:disabled { background: #243F54; color: #3A6070; }
+        """)
 
         self._stop_btn = QPushButton("■   Hentikan Analisis")
         self._stop_btn.setObjectName("btn_stop")
         self._stop_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._stop_btn.setMinimumHeight(38)
+        self._stop_btn.setMinimumHeight(32)
         self._stop_btn.setEnabled(False)
         self._stop_btn.clicked.connect(self.stop_requested.emit)
+        self._stop_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(217, 64, 64, 0.15);
+                color: #FF9090;
+                border: 2px solid #FF6060;
+                border-radius: 10px;
+                font-size: 12px;
+                font-weight: 800;
+                padding: 6px 0;
+            }
+            QPushButton:hover { background-color: #D94040; color: #FFFFFF; }
+            QPushButton:disabled { color: #4A7A90; border-color: #3A6070; background-color: transparent; }
+        """)
 
         al.addWidget(self._run_btn)
         al.addWidget(self._stop_btn)
