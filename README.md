@@ -95,12 +95,12 @@ project/
 │       ├── results_panel.py
 │       └── status_bar.py
 ├── classifier.py               # Logika klasifikasi keramaian & pergerakan
-├── detector.py                 # Wrapper YOLOv8 dengan rectangular inference
+├── detector.py                 # Deteksi YOLOv8
 ├── evaluator.py                # Fungsi evaluasi metrik
 ├── main.py                     # Pipeline utama untuk deteksi, tracking, dan output
 ├── metrics.py                  # Perhitungan v_norm dan slow ratio
 ├── rolling_window.py           # Agregasi temporal rolling window
-├── tracker.py                  # Wrapper DeepSORT
+├── tracker.py                  # Deteksi DeepSORT
 ├── video_writer.py             # Output video beranotasi
 ├── hitung_tau.py               # Script perhitungan nilai ambang TAU
 ├── run_app.py                  # Entry point aplikasi desktop
