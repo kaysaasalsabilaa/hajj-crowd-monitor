@@ -11,8 +11,6 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QUrl, pyqtSignal, QTimer
 from PyQt6.QtGui import QColor
 
-from app.widgets.chart_widget import TrendChart
-
 try:
     from PyQt6.QtWebEngineWidgets import QWebEngineView
     from PyQt6.QtWebEngineCore import QWebEnginePage
@@ -21,7 +19,7 @@ except ImportError:
     WEB_ENGINE_AVAILABLE = False
 
 
-MAX_ROWS = 500
+MAKS_BARIS = 500
 
 
 def _resolve_name(row: dict, default_loc_name: str = "", counter: int = 0) -> str:
@@ -385,9 +383,8 @@ function _checkExpiry(){
 </html>"""
 
 
-# ── Custom Page: intercept console.log "__SELECT__:<pid>" ──────────────────────
 if WEB_ENGINE_AVAILABLE:
-    class MapPage(QWebEnginePage):
+    class HalamanPeta(QWebEnginePage):
         point_selected_signal = pyqtSignal(str)
 
         def javaScriptConsoleMessage(self, level, message, line, source):
@@ -396,7 +393,7 @@ if WEB_ENGINE_AVAILABLE:
                 if pid:
                     self.point_selected_signal.emit(pid)
 
-class MonitoringMapWidget(QWidget):
+class WidgetPetaPemantauan(QWidget):
 
     point_selected = pyqtSignal(str)
 
@@ -414,7 +411,7 @@ class MonitoringMapWidget(QWidget):
         root.setSpacing(0)
 
         if WEB_ENGINE_AVAILABLE:
-            self._page = MapPage()
+            self._page = HalamanPeta()
             self._page.point_selected_signal.connect(self._on_js_select)
             self._view = QWebEngineView()
             self._view.setPage(self._page)
@@ -445,7 +442,6 @@ class MonitoringMapWidget(QWidget):
             ))
 
     def _on_js_select(self, pid: str):
-      
         self.point_selected.emit(pid)
 
     def _run_js(self, js: str):
@@ -480,8 +476,8 @@ class MonitoringMapWidget(QWidget):
         fl.addWidget(txt)
         layout.addWidget(fb, 1)
 
-    def update_with_window(self, row: dict, loc_counter: int = 0):
- 
+    def perbarui_dengan_window(self, row: dict, loc_counter: int = 0):
+
         lat = float(row.get("lat") or 21.4225)
         lon = float(row.get("lon") or 39.8262)
         pid = f"{lat:.5f}_{lon:.5f}"
@@ -506,21 +502,21 @@ class MonitoringMapWidget(QWidget):
         inner = json.dumps(data)
         self._run_js(f"window._CROWDMAP.updatePoint({json.dumps(inner)});")
 
-    def fly_to_location(self, lat: float, lon: float):
+    def menuju_lokasi(self, lat: float, lon: float):
         self._run_js(f"window._CROWDMAP.flyTo({lat},{lon},15);")
 
-    def fly_to_point(self, pid: str):
+    def menuju_titik(self, pid: str):
         self._run_js(f"window._CROWDMAP.flyToPoint({json.dumps(pid)});")
 
     def highlight_point(self, pid: str):
         self._run_js(f"window._CROWDMAP.highlightPoint({json.dumps(pid)});")
 
-    def reset_all(self):
+    def reset_semua(self):
         self._point_store.clear()
         self._run_js("window._CROWDMAP.resetAll();")
 
 
-class MetricCard(QWidget):
+class KartuMetrik(QWidget):
     def __init__(self, icon, label, unit="", parent=None):
         super().__init__(parent)
         self.setObjectName("metric_card")
@@ -560,7 +556,7 @@ class MetricCard(QWidget):
         col.addLayout(br)
         root.addLayout(col, 1)
 
-    def set_value(self, val, fmt=None):
+    def atur_nilai(self, val, fmt=None):
         if val is None or val == "":
             self._val.setText("—")
             self._trend.setText("")
@@ -585,7 +581,7 @@ class MetricCard(QWidget):
         self._trend.setText("")
 
 
-class AlertStrip(QWidget):
+class StripPeringatan(QWidget):
     _CFG = {
         "TINGGI": ("alert_strip_high",   "🚨 Keramaian TINGGI — Pemantauan intensif diperlukan"),
         "SEDANG": ("alert_strip_medium", "⚠️ Keramaian SEDANG — Kondisi normal, tetap pantau"),
@@ -607,7 +603,7 @@ class AlertStrip(QWidget):
         l.addWidget(self._strip)
         self.setVisible(False)
 
-    def set_crowd(self, crowd: str):
+    def atur_keramaian(self, crowd: str):
         crowd = (crowd or "").upper()
         obj, msg = self._CFG.get(crowd, self._CFG[""])
         if not msg:
@@ -636,7 +632,7 @@ _CBM = {
     "TERSENDAT": "badge_tersendat", "LANCAR": "badge_lancar",
 }
 
-class LabelBadge(QWidget):
+class LencanaLabel(QWidget):
     def __init__(self, title, parent=None):
         super().__init__(parent)
         self.setObjectName("crowd_badge_container")
@@ -657,7 +653,7 @@ class LabelBadge(QWidget):
         self._desc.setWordWrap(True)
         r.addWidget(self._desc)
 
-    def set_label(self, label: str):
+    def atur_label(self, label: str):
         label = (label or "").upper()
         icon = _CI.get(label, "")
         self._badge.setObjectName(_CBM.get(label, "badge_neutral"))
@@ -677,7 +673,7 @@ class LabelBadge(QWidget):
 
 
 # panel dashboard
-class DashboardPanel(QWidget):
+class PanelDashboard(QWidget):
 
     TABLE_COLS = [
         ("Window #",    "window_k",       None),
@@ -699,9 +695,9 @@ class DashboardPanel(QWidget):
         self._loc_counter: int = 0
         self._default_loc_name: str = ""
         self._name_usage: dict[str, int] = {}
-        self._build_ui()
+        self._bangun_ui()
 
-    def _build_ui(self):
+    def _bangun_ui(self):
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
@@ -767,21 +763,21 @@ class DashboardPanel(QWidget):
         rl.setContentsMargins(24, 20, 24, 20)
         rl.setSpacing(14)
 
-        self._alert = AlertStrip()
+        self._alert = StripPeringatan()
         rl.addWidget(self._alert)
 
         cg = QGridLayout()
         cg.setSpacing(12)
-        self._c_count = MetricCard("👥", "Jumlah Orang",      "orang / window")
-        self._c_slow  = MetricCard("🚶", "Slow Ratio",        "proporsi lambat")
+        self._c_count = KartuMetrik("👥", "Jumlah Orang",      "orang / window")
+        self._c_slow  = KartuMetrik("🚶", "Slow Ratio",        "proporsi lambat")
         cg.addWidget(self._c_count, 0, 0)
         cg.addWidget(self._c_slow,  0, 1)
         rl.addLayout(cg)
 
         brow = QHBoxLayout()
         brow.setSpacing(12)
-        self._b_crowd = LabelBadge("Tingkat Keramaian")
-        self._b_move  = LabelBadge("Kondisi Pergerakan")
+        self._b_crowd = LencanaLabel("Tingkat Keramaian")
+        self._b_move  = LencanaLabel("Kondisi Pergerakan")
         brow.addWidget(self._b_crowd)
         brow.addWidget(self._b_move)
         rl.addLayout(brow)
@@ -845,7 +841,7 @@ class DashboardPanel(QWidget):
         self._stack.addWidget(cp)
         root.addWidget(self._stack, 1)
 
-    def set_default_location_name(self, name: str):
+    def atur_nama_lokasi_default(self, name: str):
 
         self._default_loc_name = name.strip()
 
@@ -856,15 +852,15 @@ class DashboardPanel(QWidget):
 
         if base not in self._name_usage:
             self._name_usage[base] = 1
-            return base          
+            return base
         else:
             self._name_usage[base] += 1
-            return f"{base} {self._name_usage[base]}"  
+            return f"{base} {self._name_usage[base]}"
 
-    def ingest_window(self, row: dict) -> str:
+    def terima_window(self, row: dict) -> str:
         """
         Terima data window baru dari pipeline.
-        Return nama final yang dipakai (untuk sinkron ke MapWidget via ResultsPanel).
+        Return nama final yang dipakai (untuk sinkron ke WidgetPetaPemantauan via PanelHasil).
         """
         lat = float(row.get("lat") or 21.4225)
         lon = float(row.get("lon") or 39.8262)
@@ -889,7 +885,7 @@ class DashboardPanel(QWidget):
 
         rows = self._pts[pid]["rows"]
         rows.append(row)
-        if len(rows) > MAX_ROWS:
+        if len(rows) > MAKS_BARIS:
             rows.pop(0)
         self._pts[pid]["last_row"] = row
 
@@ -906,11 +902,11 @@ class DashboardPanel(QWidget):
 
         return self._pts[pid]["name"]
 
-    def switch_to_point(self, pid: str):
+    def tampilkan_titik(self, pid: str):
         """
         Tampilkan data titik tertentu.
         Dipanggil dari:
-          - ResultsPanel._on_point_selected (saat tombol popup diklik)
+          - PanelHasil._on_point_selected (saat tombol popup diklik)
           - Tombol selector di header dashboard
         """
         if pid not in self._pts:
@@ -924,8 +920,8 @@ class DashboardPanel(QWidget):
         self._rebuild_sel()
 
         self._tbl.setRowCount(0)
-        self._chart.clear()
-        for c in (self._c_count, self._c_slow, self._c_ndef):
+
+        for c in (self._c_count, self._c_slow):
             c.reset()
         self._b_crowd.reset()
         self._b_move.reset()
@@ -944,12 +940,12 @@ class DashboardPanel(QWidget):
 
     def _render(self, row: dict, silent: bool = False):
         if not silent:
-            self._c_count.set_value(row.get("count_avg"), f"{row.get('count_avg', 0):.1f}")
-            self._c_slow.set_value(row.get("slow_ratio"),  f"{row.get('slow_ratio', 0):.3f}")
+            self._c_count.atur_nilai(row.get("count_avg"), f"{row.get('count_avg', 0):.1f}")
+            self._c_slow.atur_nilai(row.get("slow_ratio"),  f"{row.get('slow_ratio', 0):.3f}")
             crowd = row.get("label_crowd", "")
-            self._b_crowd.set_label(crowd)
-            self._b_move.set_label(row.get("label_movement", ""))
-            self._alert.set_crowd(crowd)
+            self._b_crowd.atur_label(crowd)
+            self._b_move.atur_label(row.get("label_movement", ""))
+            self._alert.atur_keramaian(crowd)
 
         r = self._tbl.rowCount()
         self._tbl.insertRow(r)
@@ -997,11 +993,11 @@ class DashboardPanel(QWidget):
                 "point_selector_btn_active" if is_a else "point_selector_btn"
             )
             btn.setFixedHeight(26)
-            btn.clicked.connect(lambda checked, p=pid: self.switch_to_point(p))
+            btn.clicked.connect(lambda checked, p=pid: self.tampilkan_titik(p))
             self._sel_row.addWidget(btn)
         self._sel_row.addStretch()
 
-    def set_output_paths(self, paths: dict):
+    def atur_jalur_output(self, paths: dict):
         self._out_paths = paths
         self._live.setVisible(False)
         self._bw.setEnabled(bool(paths.get("out_window")))
@@ -1018,13 +1014,14 @@ class DashboardPanel(QWidget):
             else:
                 subprocess.call(["xdg-open", path])
 
-    def reset_all(self):
+    def reset_semua(self):
         self._pts = {}
         self._active = None
         self._loc_counter = 0
         self._name_usage = {}
 
         self._tbl.setRowCount(0)
+
         self._alert.reset()
         self._live.setVisible(False)
         for c in (self._c_count, self._c_slow):
@@ -1039,17 +1036,17 @@ class DashboardPanel(QWidget):
         self._rebuild_sel()
 
 
-# ─panel results
-class ResultsPanel(QWidget):
+# panel results
+class PanelHasil(QWidget):
 
     point_selected = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("content_area")
-        self._build_ui()
+        self._bangun_ui()
 
-    def _build_ui(self):
+    def _bangun_ui(self):
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
@@ -1057,11 +1054,11 @@ class ResultsPanel(QWidget):
         self._main_tabs = QTabWidget()
         self._main_tabs.setObjectName("main_tab_widget")
 
-        self._map_widget = MonitoringMapWidget()
+        self._map_widget = WidgetPetaPemantauan()
         self._map_widget.point_selected.connect(self._on_point_selected)
         self._main_tabs.addTab(self._map_widget, "🗺️  Peta Pemantauan")
 
-        self._dashboard = DashboardPanel()
+        self._dashboard = PanelDashboard()
         self._main_tabs.addTab(self._dashboard, "📊  Dashboard Pemantauan")
 
         self._main_tabs.setCurrentIndex(0)
@@ -1069,33 +1066,33 @@ class ResultsPanel(QWidget):
 
     def _on_point_selected(self, pid: str):
 
-        self._dashboard.switch_to_point(pid)
+        self._dashboard.tampilkan_titik(pid)
         self._main_tabs.setCurrentIndex(1)
         self.point_selected.emit(pid)
 
-    def set_location(self, lat: float, lon: float, name: str):
-        
-        self._map_widget.fly_to_location(lat, lon)
-        self._dashboard.set_default_location_name(name)
+    def atur_lokasi(self, lat: float, lon: float, name: str):
 
-    def update_with_window(self, row: dict):
-       
-        resolved_name = self._dashboard.ingest_window(row)
+        self._map_widget.menuju_lokasi(lat, lon)
+        self._dashboard.atur_nama_lokasi_default(name)
+
+    def perbarui_dengan_window(self, row: dict):
+
+        resolved_name = self._dashboard.terima_window(row)
 
         row_with_name = dict(row)
         row_with_name["lokasi"] = resolved_name
 
-        self._map_widget.update_with_window(row_with_name, self._dashboard._loc_counter)
+        self._map_widget.perbarui_dengan_window(row_with_name, self._dashboard._loc_counter)
 
-    def switch_dashboard_to_point(self, pid: str):
-        """Sinkronisasi eksternal dari MainWindow agar tidak switch tab"""
-        self._dashboard.switch_to_point(pid)
+    def tampilkan_dashboard_titik(self, pid: str):
+        """Sinkronisasi eksternal dari JendelaUtama agar tidak switch tab"""
+        self._dashboard.tampilkan_titik(pid)
 
-    def set_output_paths(self, result: dict):
-        self._dashboard.set_output_paths(result)
+    def atur_jalur_output(self, result: dict):
+        self._dashboard.atur_jalur_output(result)
 
     def clear(self):
         """Reset untuk run baru"""
-        self._map_widget.reset_all()
-        self._dashboard.reset_all()
+        self._map_widget.reset_semua()
+        self._dashboard.reset_semua()
         self._main_tabs.setCurrentIndex(0)

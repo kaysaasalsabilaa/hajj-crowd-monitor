@@ -9,12 +9,12 @@ from PyQt6.QtGui import QTextCursor
 class LogPanel(QWidget):
 
     STATUS_COLORS = {
-        "IDLE": ("⬤", "#64748b"),
-        "RUNNING": ("⬤", "#3b82f6"),
+        "IDLE":     ("⬤", "#64748b"),
+        "RUNNING":  ("⬤", "#3b82f6"),
         "STOPPING": ("⬤", "#f59e0b"),
-        "DONE": ("⬤", "#10b981"),
-        "CANCELLED": ("⬤", "#94a3b8"),
-        "ERROR": ("⬤", "#ef4444"),
+        "DONE":     ("⬤", "#10b981"),
+        "CANCELLED":("⬤", "#94a3b8"),
+        "ERROR":    ("⬤", "#ef4444"),
     }
 
     def __init__(self, parent=None):
@@ -42,14 +42,14 @@ class LogPanel(QWidget):
         status_row.addWidget(self._time_lbl)
         layout.addLayout(status_row)
 
-        # bar progress
+        # progres
         self.progress_bar = QProgressBar()
         self.progress_bar.setValue(0)
         self.progress_bar.setFixedHeight(6)
         self.progress_bar.setTextVisible(False)
         layout.addWidget(self.progress_bar)
 
-        # log area
+        # area log
         self.log_area = QTextEdit()
         self.log_area.setObjectName("log_area")
         self.log_area.setReadOnly(True)
@@ -57,7 +57,7 @@ class LogPanel(QWidget):
         self.log_area.setMaximumHeight(180)
         layout.addWidget(self.log_area)
 
-    def set_status(self, status: str):
+    def atur_status(self, status: str):
         """status: 'IDLE' | 'RUNNING' | 'DONE' | 'ERROR'"""
         dot_char, color = self.STATUS_COLORS.get(status, ("⬤", "#64748b"))
         self._dot.setStyleSheet(f"color: {color}; font-size: 10px;")
@@ -68,7 +68,7 @@ class LogPanel(QWidget):
         elif status == "DONE":
             self._time_lbl.setText(f"Selesai {QTime.currentTime().toString('hh:mm:ss')}")
 
-    def append_log(self, message: str):
+    def tambah_log(self, message: str):
         self.log_area.append(message)
         cursor = self.log_area.textCursor()
         cursor.movePosition(QTextCursor.MoveOperation.End)
@@ -80,5 +80,5 @@ class LogPanel(QWidget):
     def clear(self):
         self.log_area.clear()
         self.progress_bar.setValue(0)
-        self.set_status("IDLE")
+        self.atur_status("IDLE")
         self._time_lbl.setText("")

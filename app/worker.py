@@ -16,24 +16,24 @@ class PipelineWorker(QThread):
         self.params = params
         self._stop_requested = False
 
-    def request_stop(self):
+    def minta_berhenti(self):
         self._stop_requested = True
 
     def run(self):
         try:
-            self._invoke_core()
+            self._panggil_inti()
         except Exception as e:
             self.error.emit(f"{e}\n\n{traceback.format_exc()}")
 
-    def _invoke_core(self):
+    def _panggil_inti(self):
         p    = self.params
         root = p["project_root"]
         if root not in sys.path:
             sys.path.insert(0, root)
 
-        from main import run_pipeline
+        from main import jalankan_pipeline
 
-        result = run_pipeline(
+        result = jalankan_pipeline(
             video_path    = p["video_path"],
             model_path    = p["model_path"],
             video_name    = p["video_name"],
@@ -51,7 +51,7 @@ class PipelineWorker(QThread):
             sh            = p["SH"],
             window_s      = p["WINDOW_S"],
             interval_s    = p["INTERVAL_S"],
-            crowd_top_y   = p["CROWD_TOP_Y"],   
+            crowd_top_y   = p["CROWD_TOP_Y"],
             on_log        = self.log_message.emit,
             on_progress   = self.progress.emit,
             on_window     = self.window_result.emit,

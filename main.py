@@ -5,9 +5,9 @@ from datetime import datetime
 
 import cv2
 
-from classifier     import classify_crowd, classify_movement
-from detector       import Detector
-from metrics        import MetricsCalculator
+from classifier     import klasifikasi_keramaian, klasifikasi_pergerakan
+from detector       import Detektor
+from metrics        import KalkulatorMetrik
 from rolling_window import RollingCrowdWindow
 from tracker        import Tracker
 from video_writer   import AnnotatedVideoWriter
@@ -33,18 +33,18 @@ INTERVAL_S     = 1.0
 WARMUP_FRAMES  = 10
 CROWD_TOP_Y    = 200
 
-# output CSV
+# Kolom output CSV
 FRAME_FIELDS = ["timestamp", "count", "n_terdefinisi", "n_lambat", "sf"]
 
 FRAME_TRACK_FIELDS = [
-    "timestamp",   
-    "frame_idx",   
-    "track_id",    
-    "cx",          # centroid x bounding box (piksel)
-    "cy",          # centroid y bounding box (piksel)
-    "bbox_h",      # tinggi bounding box ternormalisasi
-    "v_norm",      # kecepatan relatif ternormalisasi = (d/dt) / bbox h
-    "is_lambat",   # 1 jika v norm < TAU, 0 jika tidak
+    "timestamp",
+    "frame_idx",
+    "track_id",
+    "cx",        # centroid x bounding box (piksel)
+    "cy",        # centroid y bounding box (piksel)
+    "bbox_h",    # tinggi bounding box ternormalisasi
+    "v_norm",    # kecepatan relatif ternormalisasi = (d/dt) / bbox_h
+    "is_lambat", # 1 jika v_norm < TAU, 0 jika tidak
 ]
 
 WINDOW_FIELDS = [
@@ -54,11 +54,12 @@ WINDOW_FIELDS = [
     "lat", "lon", "lokasi",
 ]
 
-def get_timestamp(cap, frame_idx, fps, is_live, waktu_awal):
+
+def get_timestamp(cap, indeks_frame, fps, is_live, waktu_awal):
     if is_live:
         return time.time() - waktu_awal
     ms = cap.get(cv2.CAP_PROP_POS_MSEC)
-    return float(ms) / 1000.0 if ms > 0 else frame_idx / fps
+    return float(ms) / 1000.0 if ms > 0 else indeks_frame / fps
 
 
 def save_metadata(path, video_name, fps, location, thresholds):
@@ -74,15 +75,16 @@ def save_metadata(path, video_name, fps, location, thresholds):
     print(f"Metadata : {path}")
 
 
-def _count_raw_confirmed(tracker_obj) -> int:
-
+def _hitung_track_mentah(tracker_obj) -> int:
+    # Hitung jumlah track terkonfirmasi langsung dari objek DeepSort
     try:
         tracks = tracker_obj.tracker.tracks
         return sum(1 for t in tracks if t.is_confirmed())
     except Exception:
         return 0
 
-def run_pipeline(
+
+def jalankan_pipeline(
     video_path,
     model_path,
     video_name,
@@ -106,7 +108,6 @@ def run_pipeline(
     on_window      = None,
     stop_flag      = None,
 ):
-
     import os
     os.makedirs(output_dir, exist_ok=True)
 
@@ -138,19 +139,19 @@ def run_pipeline(
         f"crowd_top_y: {crowd_top_y}px │ TAU: {tau}"
     )
 
-    detector = Detector(
+    detektor   = Detektor(
         model_path,
-        conf              = conf_thresh,
-        iou               = iou_thresh,
-        imgsz             = imgsz,
-        background_zone_y = crowd_top_y,
+        conf         = conf_thresh,
+        iou          = iou_thresh,
+        imgsz        = imgsz,
+        zona_latar_y = crowd_top_y,
     )
     tracker    = Tracker(
         crowd_top_y  = crowd_top_y,
         frame_width  = vid_w,
         frame_height = vid_h,
     )
-    calculator = MetricsCalculator(tau=tau)
+    calculator = KalkulatorMetrik(tau=tau)
     win        = RollingCrowdWindow(
         window_s=window_s,
         output_interval_s=interval_s,
@@ -180,52 +181,53 @@ def run_pipeline(
         _log(f"⏳ Warmup {warmup_frames} frame pertama...")
     _log("Pipeline dimulai...")
 
-    waktu_awal       = time.time()
-    frame_idx        = 0
-    processed_count  = 0
-    frame_rows       = []
-    frame_track_rows = []   
-    window_rows      = []
-    stopped_by_user  = False
+    waktu_awal          = time.time()
+    indeks_frame        = 0
+    jumlah_diproses     = 0
+    baris_frame         = []
+    frame_track_rows    = []
+    baris_window        = []
+    dihentikan_pengguna = False
 
     while cap.isOpened():
         if stop_flag and stop_flag():
             _log("⛔ Pipeline dihentikan oleh pengguna.")
-            stopped_by_user = True
+            dihentikan_pengguna = True
             break
 
         ret, frame = cap.read()
         if not ret:
             break
 
-        ts = get_timestamp(cap, frame_idx, fps, is_live, waktu_awal)
+        ts = get_timestamp(cap, indeks_frame, fps, is_live, waktu_awal)
 
-        if frame_idx < warmup_frames:
-            detections = detector.detect(frame)
-            tracker.update(detections, frame)
-            frame_idx += 1
+        # Fase warmup: deteksi dan update tracker tapi tidak dicatat
+        if indeks_frame < warmup_frames:
+            hasil_deteksi = detektor.deteksi(frame)
+            tracker.perbarui(hasil_deteksi, frame)
+            indeks_frame += 1
             if on_progress and total_frames > 0:
-                on_progress(min(int(frame_idx / total_frames * 100), 5))
+                on_progress(min(int(indeks_frame / total_frames * 100), 5))
             continue
 
-        detections = detector.detect(frame)
+        hasil_deteksi = detektor.deteksi(frame)
 
-        raw_confirmed_before = _count_raw_confirmed(tracker)
-        confirmed_tracks     = tracker.update(detections, frame)
-        n_ghost = max(0, raw_confirmed_before - len(confirmed_tracks))
+        raw_confirmed_before  = _hitung_track_mentah(tracker)
+        jalur_terkonfirmasi   = tracker.perbarui(hasil_deteksi, frame)
+        n_ghost = max(0, raw_confirmed_before - len(jalur_terkonfirmasi))
 
-        count, n_def, n_slow, sf, slow_ids, track_speeds = calculator.update(
-            confirmed_tracks, ts
+        count, n_def, n_slow, sf, ids_lambat, kecepatan_track = calculator.perbarui(
+            jalur_terkonfirmasi, ts
         )
 
-        if processed_count % 30 == 0:
+        if jumlah_diproses % 30 == 0:
             _log(
-                f"[Frame {frame_idx}] raw_det={len(detections)} │ "
+                f"[Frame {indeks_frame}] raw_det={len(hasil_deteksi)} │ "
                 f"confirmed={count} │ slow={n_slow} │ "
                 f"ghost_suppressed={n_ghost} │ ts={ts:.1f}s"
             )
 
-        frame_rows.append({
+        baris_frame.append({
             "timestamp":     round(ts, 4),
             "count":         count,
             "n_terdefinisi": n_def,
@@ -233,11 +235,10 @@ def run_pipeline(
             "sf":            round(sf, 4),
         })
 
-
-        for spd in track_speeds:
+        for spd in kecepatan_track:
             frame_track_rows.append({
                 "timestamp": round(ts, 4),
-                "frame_idx": frame_idx,
+                "frame_idx": indeks_frame,
                 "track_id":  spd["track_id"],
                 "cx":        spd["cx"],
                 "cy":        spd["cy"],
@@ -246,7 +247,7 @@ def run_pipeline(
                 "is_lambat": spd["is_lambat"],
             })
 
-        # Rolling window
+        # data ke rolling window dan ambil output jika waktunya
         win.push(ts, count, n_def, n_slow)
 
         while win.should_output(ts):
@@ -254,11 +255,13 @@ def run_pipeline(
             if feats is None:
                 break
 
-            label_crowd    = classify_crowd(
+            label_crowd    = klasifikasi_keramaian(
                 feats["count_avg"], feats["slow_ratio"],
                 X=x_count, Y=y_count, SH=sh,
             )
-            label_movement = classify_movement(feats["slow_ratio"], feats["count_avg"], x_count, SH=sh)
+            label_movement = klasifikasi_pergerakan(
+                feats["slow_ratio"], feats["count_avg"], x_count, SH=sh
+            )
 
             row = {
                 "window_k":            feats["window_k"],
@@ -274,7 +277,7 @@ def run_pipeline(
                 "lon":                 location["lon"],
                 "lokasi":              location["nama"],
             }
-            window_rows.append(row)
+            baris_window.append(row)
             if on_window:
                 on_window(row)
 
@@ -288,15 +291,15 @@ def run_pipeline(
 
         if vwriter is not None:
             vwriter.write_frame(
-                frame, confirmed_tracks, frame_idx, ts,
-                slow_ids=slow_ids,
+                frame, jalur_terkonfirmasi, indeks_frame, ts,
+                ids_lambat=ids_lambat,
                 n_ghost=n_ghost,
             )
 
-        frame_idx       += 1
-        processed_count += 1
+        indeks_frame    += 1
+        jumlah_diproses += 1
         if on_progress and total_frames > 0:
-            on_progress(min(int(frame_idx / total_frames * 100), 99))
+            on_progress(min(int(indeks_frame / total_frames * 100), 99))
 
     cap.release()
     if vwriter is not None:
@@ -304,24 +307,23 @@ def run_pipeline(
         _log(f"✅ Video tersimpan: {out_video}")
 
     _log(
-        f"\n✓ Selesai — {processed_count} frame diproses "
-        f"(+{warmup_frames} warmup, total {frame_idx})"
+        f"\n✓ Selesai — {jumlah_diproses} frame diproses "
+        f"(+{warmup_frames} warmup, total {indeks_frame})"
     )
 
     # Simpan CSV & metadata
     out_frame       = os.path.join(output_dir, f"frame_{video_name}.csv")
-    out_frame_track = os.path.join(output_dir, f"frame_track_{video_name}.csv")   
+    out_frame_track = os.path.join(output_dir, f"frame_track_{video_name}.csv")
     out_window      = os.path.join(output_dir, f"window_{video_name}.csv")
     out_meta        = os.path.join(output_dir, f"meta_{video_name}.json")
 
-    if frame_rows:
+    if baris_frame:
         with open(out_frame, "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=FRAME_FIELDS)
             writer.writeheader()
-            writer.writerows(frame_rows)
+            writer.writerows(baris_frame)
         _log(f"💾 Frame CSV          → {out_frame}")
 
-    # simpan frame track CSV
     if frame_track_rows:
         with open(out_frame_track, "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=FRAME_TRACK_FIELDS)
@@ -334,11 +336,11 @@ def run_pipeline(
     else:
         _log("⚠  frame_track CSV kosong — tidak ada track dengan v_norm terdefinisi.")
 
-    if window_rows:
+    if baris_window:
         with open(out_window, "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=WINDOW_FIELDS)
             writer.writeheader()
-            writer.writerows(window_rows)
+            writer.writerows(baris_window)
         _log(f"💾 Window CSV         → {out_window}")
 
     thresholds = {
@@ -366,19 +368,20 @@ def run_pipeline(
         on_progress(100)
 
     return {
-        "out_frame":        out_frame,
-        "out_frame_track":  out_frame_track,   
-        "out_window":       out_window,
-        "out_meta":         out_meta,
-        "out_video":        out_video,
-        "window_rows":      window_rows,
-        "frame_count":      processed_count,
-        "stopped_by_user":  stopped_by_user,
+        "out_frame":           out_frame,
+        "out_frame_track":     out_frame_track,
+        "out_window":          out_window,
+        "out_meta":            out_meta,
+        "out_video":           out_video,
+        "window_rows":         baris_window,
+        "frame_count":         jumlah_diproses,
+        "dihentikan_pengguna": dihentikan_pengguna,
     }
+
 
 def main():
     """Entry point CLI."""
-    run_pipeline(
+    jalankan_pipeline(
         video_path    = VIDEO_PATH,
         model_path    = MODEL_PATH,
         video_name    = VIDEO_NAME,

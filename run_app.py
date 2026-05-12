@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt
-from app.main_window import MainWindow
+from app.main_window import JendelaUtama
 
 
 def main():
@@ -14,8 +14,8 @@ def main():
     app.setApplicationVersion("2.0.0")
     app.setOrganizationName("Universitas Airlangga")
 
-    window = MainWindow()
-    window.show()
+    jendela = JendelaUtama()
+    jendela.show()
     sys.exit(app.exec())
 
 

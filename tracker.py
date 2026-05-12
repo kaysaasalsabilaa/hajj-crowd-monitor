@@ -1,12 +1,13 @@
 from deep_sort_realtime.deepsort_tracker import DeepSort
 
+
 class Tracker:
     def __init__(
         self,
-        max_age             = 20,    
+        max_age             = 20,
         n_init              = 3,
-        max_iou_distance    = 0.60,  
-        max_cosine_distance = 0.65,  
+        max_iou_distance    = 0.60,
+        max_cosine_distance = 0.65,
         nn_budget           = 150,
         crowd_top_y         = 270,
         frame_width         = 1280,
@@ -24,22 +25,23 @@ class Tracker:
         self.frame_width   = frame_width
         self.frame_height  = frame_height
 
-    def update(self, detections, frame):
-
+    def perbarui(self, hasil_deteksi, frame):
+        # Perbarui dimensi frame jika frame tersedia
         if frame is not None:
             self.frame_height, self.frame_width = frame.shape[:2]
 
-        self._last_det_bboxes = [d[0] for d in detections]
-        raw_tracks = self.tracker.update_tracks(detections, frame=frame)
+        self._last_det_bboxes = [d[0] for d in hasil_deteksi]
+        tracks_mentah = self.tracker.update_tracks(hasil_deteksi, frame=frame)
 
-        confirmed = []
-        for t in raw_tracks:
+        # Kumpulkan track yang sudah terkonfirmasi dan valid
+        tracks_confirmed = []
+        for t in tracks_mentah:
             if not t.is_confirmed():
                 continue
 
-            yolo_bbox = self._get_yolo_bbox(t)
-            if yolo_bbox is not None:
-                x1, y1, w, h = yolo_bbox
+            bbox_yolo = self._get_yolo_bbox(t)
+            if bbox_yolo is not None:
+                x1, y1, w, h = bbox_yolo
                 x2 = x1 + w
                 y2 = y1 + h
             else:
@@ -53,6 +55,7 @@ class Tracker:
             if w <= 0 or h <= 0:
                 continue
 
+            # Clamp koordinat agar tidak keluar batas frame
             x1 = max(0.0, float(x1))
             y1 = max(0.0, float(y1))
             x2 = min(float(self.frame_width),  float(x2))
@@ -66,10 +69,11 @@ class Tracker:
             cx = (x1 + x2) / 2.0
             cy = (y1 + y2) / 2.0
 
+            # Abaikan track di atas batas zona crowd
             if cy < self.crowd_top_y:
                 continue
 
-            confirmed.append({
+            tracks_confirmed.append({
                 "id": t.track_id,
                 "cx": cx,
                 "cy": cy,
@@ -77,10 +81,10 @@ class Tracker:
                 "w" : float(w),
             })
 
-        return confirmed
+        return tracks_confirmed
 
     def _get_yolo_bbox(self, track):
-
+        # Coba ambil bbox langsung dari atribut deteksi terakhir
         try:
             ldet = track.last_detection
             if ldet is not None:
@@ -102,16 +106,17 @@ class Tracker:
         except (AttributeError, TypeError, IndexError):
             pass
 
+        # Fallback: coba dari indeks deteksi ke _last_det_bboxes
         try:
-            det_idx = None
+            idx_deteksi = None
             for attr in ('det_id', '_det_id', 'origin_id', '_origin_id'):
                 if hasattr(track, attr):
                     val = getattr(track, attr)
                     if val is not None and isinstance(val, int):
-                        det_idx = val
+                        idx_deteksi = val
                         break
-            if det_idx is not None and 0 <= det_idx < len(self._last_det_bboxes):
-                bbox = self._last_det_bboxes[det_idx]
+            if idx_deteksi is not None and 0 <= idx_deteksi < len(self._last_det_bboxes):
+                bbox = self._last_det_bboxes[idx_deteksi]
                 x1, y1, w, h = (float(bbox[0]), float(bbox[1]),
                                 float(bbox[2]), float(bbox[3]))
                 if w > 0 and h > 0:

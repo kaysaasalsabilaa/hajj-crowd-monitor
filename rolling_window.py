@@ -19,7 +19,7 @@ class RollingCrowdWindow:
         self.window_k          = 0
 
     def push(self, ts: float, count: int,
-             n_terdefinisi: int, n_lambat: int) -> None:
+              n_terdefinisi: int, n_lambat: int) -> None:
 
         self.buffer.append((ts, count, n_terdefinisi, n_lambat))
 
@@ -43,8 +43,8 @@ class RollingCrowdWindow:
         counts              = [s[1] for s in self.buffer]
         n_terdefinisi_total = sum(s[2] for s in self.buffer)
         n_lambat_total      = sum(s[3] for s in self.buffer)
-        count_avg           = sum(counts) / len(counts)
-        slow_ratio          = (
+        rerata_jumlah       = sum(counts) / len(counts)
+        rasio_lambat        = (
             n_lambat_total / n_terdefinisi_total
             if n_terdefinisi_total > 0 else 0.0
         )
@@ -56,8 +56,8 @@ class RollingCrowdWindow:
             "window_k":            self.window_k,
             "window_start":        round(self.buffer[0][0], 3),
             "window_end":          round(self.buffer[-1][0], 3),
-            "count_avg":           round(count_avg, 2),
+            "count_avg":           round(rerata_jumlah, 2),
             "n_terdefinisi_total": n_terdefinisi_total,
             "n_lambat_total":      n_lambat_total,
-            "slow_ratio":          round(slow_ratio, 4),
+            "slow_ratio":          round(rasio_lambat, 4),
         }

@@ -26,10 +26,12 @@ def _step_header(num: str, title: str, done: bool = False) -> QWidget:
     lay.addStretch()
     return w
 
-def _sidebar_label(text: str) -> QLabel:
+
+def _label_sidebar(text: str) -> QLabel:
     lbl = QLabel(text)
     lbl.setObjectName("sidebar_label")
     return lbl
+
 
 def _divider() -> QFrame:
     line = QFrame()
@@ -38,7 +40,6 @@ def _divider() -> QFrame:
     return line
 
 
-# Setting
 class AdvancedSettings(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -191,13 +192,13 @@ class AdvancedSettings(QWidget):
         arrow = "▴" if not self._collapsed else "▾"
         self._toggle_btn.setText(f"⚙   Pengaturan Lanjutan  {arrow}")
 
-    def get_params(self) -> dict:
+    def ambil_params(self) -> dict:
         return {
             "CONF_THRESH":   self.conf_spin.value(),
             "IOU_THRESH":    self.iou_spin.value(),
             "IMGSZ":         int(self.imgsz_combo.currentText()),
             "WARMUP_FRAMES": self.warmup_spin.value(),
-            "CROWD_TOP_Y":   self.crowd_top_y_spin.value(),   # ← BARU v6
+            "CROWD_TOP_Y":   self.crowd_top_y_spin.value(),
             "TAU":           self.tau_spin.value(),
             "X_COUNT":       self.x_spin.value(),
             "Y_COUNT":       self.y_spin.value(),
@@ -207,7 +208,6 @@ class AdvancedSettings(QWidget):
         }
 
 
-# InputPanel 
 class InputPanel(QWidget):
     """
     Sinyal:
@@ -223,9 +223,9 @@ class InputPanel(QWidget):
         self._video_path = ""
         self._lat = 21.4225
         self._lon = 39.8262
-        self._build_ui()
+        self._bangun_ui()
 
-    def _build_ui(self):
+    def _bangun_ui(self):
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
         outer.setSpacing(0)
@@ -255,7 +255,7 @@ class InputPanel(QWidget):
         bl.addWidget(ver, alignment=Qt.AlignmentFlag.AlignTop)
         outer.addWidget(brand)
 
-        # Scroll area
+        # scroll area
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
@@ -266,7 +266,7 @@ class InputPanel(QWidget):
         fl.setContentsMargins(16, 18, 16, 16)
         fl.setSpacing(14)
 
-        # step 1 video
+        # langkah 1 - video
         fl.addWidget(_step_header("1", "PILIH VIDEO"))
         browse_row = QHBoxLayout()
         browse_row.setSpacing(8)
@@ -277,7 +277,7 @@ class InputPanel(QWidget):
         browse_btn.setObjectName("btn_browse")
         browse_btn.setFixedWidth(90)
         browse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        browse_btn.clicked.connect(self._browse_video)
+        browse_btn.clicked.connect(self._pilih_video)
         browse_row.addWidget(self._video_display)
         browse_row.addWidget(browse_btn)
         fl.addLayout(browse_row)
@@ -303,9 +303,9 @@ class InputPanel(QWidget):
         fl.addWidget(self._video_card)
         fl.addWidget(_divider())
 
-        # step 2 lokasi
+        # langkah 2 - lokasi
         fl.addWidget(_step_header("2", "LOKASI PENGAMATAN"))
-        fl.addWidget(_sidebar_label("Nama / Deskripsi Lokasi"))
+        fl.addWidget(_label_sidebar("Nama / Deskripsi Lokasi"))
         self._loc_name = QLineEdit()
         self._loc_name.setPlaceholderText("Contoh: Pelataran Masjidil Haram")
         self._loc_name.textChanged.connect(self._update_loc_preview)
@@ -315,14 +315,14 @@ class InputPanel(QWidget):
         map_btn.setObjectName("btn_map")
         map_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         map_btn.setMinimumHeight(36)
-        map_btn.clicked.connect(self._open_map_picker)
+        map_btn.clicked.connect(self._buka_pemilih_peta)
         fl.addWidget(map_btn)
 
         coord_row = QHBoxLayout()
         coord_row.setSpacing(8)
         lat_col = QVBoxLayout()
         lat_col.setSpacing(4)
-        lat_col.addWidget(_sidebar_label("Latitude"))
+        lat_col.addWidget(_label_sidebar("Latitude"))
         self._lat_spin = QDoubleSpinBox()
         self._lat_spin.setRange(-90.0, 90.0)
         self._lat_spin.setDecimals(6)
@@ -332,7 +332,7 @@ class InputPanel(QWidget):
         lat_col.addWidget(self._lat_spin)
         lon_col = QVBoxLayout()
         lon_col.setSpacing(4)
-        lon_col.addWidget(_sidebar_label("Longitude"))
+        lon_col.addWidget(_label_sidebar("Longitude"))
         self._lon_spin = QDoubleSpinBox()
         self._lon_spin.setRange(-180.0, 180.0)
         self._lon_spin.setDecimals(6)
@@ -364,7 +364,7 @@ class InputPanel(QWidget):
         fl.addWidget(self._loc_card)
         fl.addWidget(_divider())
 
-        # step 3 setting
+        # langkah 3 - pengaturan 
         self._adv = AdvancedSettings()
         fl.addWidget(self._adv)
         fl.addStretch(1)
@@ -394,7 +394,7 @@ class InputPanel(QWidget):
         self._run_btn.setObjectName("btn_run")
         self._run_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._run_btn.setMinimumHeight(38)
-        self._run_btn.clicked.connect(self._on_run)
+        self._run_btn.clicked.connect(self._on_jalankan)
         self._run_btn.setStyleSheet("""
             QPushButton {
                 background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
@@ -436,7 +436,7 @@ class InputPanel(QWidget):
 
         self._update_loc_preview()
 
-    def _browse_video(self):
+    def _pilih_video(self):
         path, _ = QFileDialog.getOpenFileName(
             self, "Pilih File Video", "",
             "Video (*.mp4 *.avi *.mov *.mkv *.wmv *.m4v);;Semua File (*)"
@@ -454,14 +454,14 @@ class InputPanel(QWidget):
             self._video_card.setVisible(True)
             self._val_hint.setVisible(False)
 
-    def _open_map_picker(self):
+    def _buka_pemilih_peta(self):
         dlg = MapPickerDialog(
             initial_lat=self._lat_spin.value(),
             initial_lon=self._lon_spin.value(),
             parent=self
         )
         if dlg.exec():
-            lat, lon = dlg.get_result()
+            lat, lon = dlg.ambil_hasil()
             if lat is not None:
                 self._lat_spin.setValue(lat)
                 self._lon_spin.setValue(lon)
@@ -478,13 +478,13 @@ class InputPanel(QWidget):
             f"{self._lat_spin.value():.6f}°,  {self._lon_spin.value():.6f}°"
         )
 
-    def _on_run(self):
+    def _on_jalankan(self):
         if not self._video_path or not os.path.exists(self._video_path):
             self._val_hint.setText("⚠  Pilih file video yang valid terlebih dahulu.")
             self._val_hint.setVisible(True)
             return
 
-        adv = self._adv.get_params()
+        adv = self._adv.ambil_params()
 
         if adv["X_COUNT"] > adv["Y_COUNT"]:
             self._val_hint.setText("⚠  X_COUNT tidak boleh lebih besar dari Y_COUNT.")

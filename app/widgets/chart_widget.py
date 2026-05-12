@@ -74,7 +74,8 @@ class TrendChart(QWidget):
         self._ax2.set_ylim(0, 1.05)
         self._ax2.tick_params(axis="y", colors=C_GOLD)
 
-    def add_point(self, t: float, count: float, slow: float):
+    def tambah_titik(self, t: float, count: float, slow: float):
+        """Tambah satu titik data baru ke grafik trend."""
         if not MATPLOTLIB_OK:
             return
         self._x.append(t)
@@ -88,7 +89,7 @@ class TrendChart(QWidget):
         self._style_axes()
 
         x = self._x
-        # Count: area biru lembut
+        
         self._ax1.fill_between(x, self._counts, alpha=0.10, color=C_BLUE)
         self._ax1.plot(
             x, self._counts,
@@ -96,7 +97,6 @@ class TrendChart(QWidget):
             solid_capstyle="round"
         )
 
-        # Slow ratio: area gold
         self._ax2.fill_between(x, self._slows, alpha=0.10, color=C_GOLD)
         self._ax2.plot(
             x, self._slows,

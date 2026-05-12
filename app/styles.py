@@ -1,5 +1,4 @@
-COLORS = {
-
+WARNA = {
     "sidebar_bg":           "#16293A",
     "sidebar_header_bg":    "#0F1F2E",
     "sidebar_border":       "#1E3A4E",
@@ -43,7 +42,7 @@ COLORS = {
     "teal_light":           "#BFE4F4",
 }
 
-APP_STYLE = """
+STYLE_APLIKASI = """
 /* ════════════════════════════════════════════════
    BASE & RESET
    ════════════════════════════════════════════════ */
@@ -152,13 +151,12 @@ QScrollArea > QWidget > QWidget { background: transparent; }
 #btn_run {
     background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
         stop:0 #D9B65C, stop:1 #B89030);
-    color: #0F1F2E;        /* ← ini harusnya keliatan di background gold */
+    color: #0F1F2E;
     border: none; border-radius: 10px;
-    font-size: 14px;       /* ← naikkan dari 13px */
+    font-size: 14px;
     font-weight: 800; padding: 13px 0; letter-spacing: 0.5px;
-    min-height: 46px;      /* ← tambah ini */
+    min-height: 46px;
 }
-
 #btn_run:hover {
     background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
         stop:0 #EAC464, stop:1 #C9A03C);
@@ -168,19 +166,19 @@ QScrollArea > QWidget > QWidget { background: transparent; }
 
 #btn_stop {
     background-color: rgba(217, 64, 64, 0.15);
-    color: #FF9090;             /* ← lebih terang */
-    border: 2px solid #FF6060; /* ← border lebih terang & tebal */
+    color: #FF9090;
+    border: 2px solid #FF6060;
     border-radius: 10px;
     font-size: 13px;
     font-weight: 800;
     padding: 10px 0;
-    min-height: 38px;           /* ← tambah ini */
+    min-height: 38px;
 }
 #btn_stop:hover    { background-color: #D94040; color: #FFFFFF; border-color: #D94040; }
-#btn_stop:disabled { 
-    color: #4A7A90;          /* ← lebih terang dari #2A4F65 */
-    border-color: #3A6070;   /* ← lebih terang */
-    background-color: rgba(255,255,255,0.03); 
+#btn_stop:disabled {
+    color: #4A7A90;
+    border-color: #3A6070;
+    background-color: rgba(255,255,255,0.03);
 }
 
 #btn_browse {
@@ -361,8 +359,6 @@ QProgressBar::chunk {
    TAB WIDGET
    Main tabs (Peta / Dashboard) — lebih besar, prominent
    ════════════════════════════════════════════════ */
-
-/* Main tab widget khusus */
 #main_tab_widget::pane {
     background-color: transparent;
     border: none;

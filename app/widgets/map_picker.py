@@ -14,7 +14,6 @@ try:
 except ImportError:
     WEB_ENGINE_AVAILABLE = False
 
-
 MAP_HTML = """<!DOCTYPE html>
 <html>
 <head>
@@ -114,6 +113,7 @@ if WEB_ENGINE_AVAILABLE:
         def locationSelected(self, lat: float, lon: float):
             self.location_selected.emit(lat, lon)
 
+
 class MapPickerDialog(QDialog):
     """
     Dialog peta interaktif.
@@ -134,9 +134,9 @@ class MapPickerDialog(QDialog):
         self._confirmed_lat = None
         self._confirmed_lon = None
 
-        self._build_ui()
+        self._bangun_ui()
 
-    def _build_ui(self):
+    def _bangun_ui(self):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
@@ -162,14 +162,14 @@ class MapPickerDialog(QDialog):
         layout.addWidget(toolbar)
 
         if WEB_ENGINE_AVAILABLE:
-            self._build_web_map(layout)
+            self._bangun_peta_web(layout)
         else:
-            self._build_fallback_form(layout)
+            self._bangun_form_fallback(layout)
 
-        # button
+        # tombol aksi
         btn_bar = QWidget()
         btn_bar.setStyleSheet(
-            "background: #f5f3ee; border-top: 1px solid #e0dcd4;"
+            "background: #EDEAE2; border-top: 1.5px solid #D4CFC4;"
         )
         bb_lay = QHBoxLayout(btn_bar)
         bb_lay.setContentsMargins(16, 10, 16, 10)
@@ -184,29 +184,63 @@ class MapPickerDialog(QDialog):
         self._confirm_btn.setObjectName("btn_map_confirm")
         self._confirm_btn.setEnabled(False)
         self._confirm_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._confirm_btn.clicked.connect(self._on_confirm)
+        self._confirm_btn.clicked.connect(self._on_konfirmasi)
+        self._confirm_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #1A7A50;
+                color: #FFFFFF;
+                border: none;
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: 700;
+                padding: 9px 22px;
+                min-width: 150px;
+            }
+            QPushButton:hover    { background-color: #15895A; }
+            QPushButton:disabled {
+                background-color: #2A4A3A;
+                color: #5A8A70;
+                border: 1.5px solid #3A6A54;
+            }
+        """)
 
         cancel_btn = QPushButton("Batal")
         cancel_btn.setObjectName("btn_map_cancel")
         cancel_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         cancel_btn.clicked.connect(self.reject)
+        cancel_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: #4A5A66;
+                border: 1.5px solid #B0ABA0;
+                border-radius: 8px;
+                font-size: 12px;
+                padding: 9px 22px;
+                min-width: 80px;
+            }
+            QPushButton:hover {
+                background-color: #E0DDD6;
+                color: #1A2B38;
+                border-color: #8A8A84;
+            }
+        """)
 
         bb_lay.addWidget(cancel_btn)
         bb_lay.addWidget(self._confirm_btn)
         layout.addWidget(btn_bar)
 
-    def _build_web_map(self, parent_layout):
+    def _bangun_peta_web(self, parent_layout):
         """Render peta Leaflet via QWebEngineView."""
         self._view = QWebEngineView()
         self._channel = QWebChannel()
         self._bridge = MapBridge()
         self._channel.registerObject("bridge", self._bridge)
         self._view.page().setWebChannel(self._channel)
-        self._bridge.location_selected.connect(self._on_location_selected)
+        self._bridge.location_selected.connect(self._on_lokasi_dipilih)
         self._view.setHtml(MAP_HTML, QUrl("qrc:///"))
         parent_layout.addWidget(self._view, 1)
 
-    def _build_fallback_form(self, parent_layout):
+    def _bangun_form_fallback(self, parent_layout):
         """Fallback: form koordinat manual jika WebEngine tidak tersedia."""
         fallback = QWidget()
         fallback.setStyleSheet("background-color: #f5f4f0;")
@@ -241,7 +275,7 @@ class MapPickerDialog(QDialog):
             "background: #ffffff; border: 1px solid #d4cfc4; border-radius: 7px;"
             "padding: 8px; color: #1a2e3b;"
         )
-        self._lat_edit.textChanged.connect(self._on_manual_coords_changed)
+        self._lat_edit.textChanged.connect(self._on_koordinat_manual_berubah)
         lat_row.addWidget(lat_lbl)
         lat_row.addWidget(self._lat_edit)
         cw_lay.addLayout(lat_row)
@@ -255,7 +289,7 @@ class MapPickerDialog(QDialog):
             "background: #ffffff; border: 1px solid #d4cfc4; border-radius: 7px;"
             "padding: 8px; color: #1a2e3b;"
         )
-        self._lon_edit.textChanged.connect(self._on_manual_coords_changed)
+        self._lon_edit.textChanged.connect(self._on_koordinat_manual_berubah)
         lon_row.addWidget(lon_lbl)
         lon_row.addWidget(self._lon_edit)
         cw_lay.addLayout(lon_row)
@@ -265,28 +299,28 @@ class MapPickerDialog(QDialog):
         fl.addWidget(coord_widget, alignment=Qt.AlignmentFlag.AlignCenter)
         parent_layout.addWidget(fallback, 1)
 
-        self._on_location_selected(self._lat, self._lon)
+        self._on_lokasi_dipilih(self._lat, self._lon)
 
-    def _on_manual_coords_changed(self):
+    def _on_koordinat_manual_berubah(self):
         try:
             lat = float(self._lat_edit.text())
             lon = float(self._lon_edit.text())
-            self._on_location_selected(lat, lon)
+            self._on_lokasi_dipilih(lat, lon)
         except (ValueError, AttributeError):
             pass
 
     @pyqtSlot(float, float)
-    def _on_location_selected(self, lat: float, lon: float):
+    def _on_lokasi_dipilih(self, lat: float, lon: float):
         self._lat = lat
         self._lon = lon
         self._coord_display.setText(f"📍  {lat:.6f},  {lon:.6f}")
         self._confirm_btn.setEnabled(True)
 
-    def _on_confirm(self):
+    def _on_konfirmasi(self):
         self._confirmed_lat = self._lat
         self._confirmed_lon = self._lon
         self.accept()
 
-    def get_result(self):
+    def ambil_hasil(self):
         """Return (lat, lon) atau (None, None) jika dibatalkan."""
         return self._confirmed_lat, self._confirmed_lon

@@ -6,7 +6,7 @@ from PyQt6.QtCore import Qt, QTime
 from PyQt6.QtGui import QTextCursor, QColor
 
 
-_STATE_CFG = {
+_KONFIGURASI_STATUS = {
     "IDLE":      ("#A0AAB0",  "Siap",                 "color:#A0AAB0;"),
     "RUNNING":   ("#3AB4E0",  "Memproses video...",   "color:#1A8ABE; font-weight:700;"),
     "STOPPING":  ("#E0C040",  "Menghentikan...",      "color:#C9A84C; font-weight:700;"),
@@ -15,7 +15,7 @@ _STATE_CFG = {
     "ERROR":     ("#E07878",  "Error",                "color:#C04040; font-weight:700;"),
 }
 
-_ERROR_MAP = {
+_PESAN_ERROR = {
     "Cannot open video":    "⚠  Video tidak bisa dibuka. Pastikan format didukung.",
     "best.pt":              "⚠  File model (best.pt) tidak ditemukan di folder project.",
     "ModuleNotFoundError":  "⚠  Ada library yang belum terinstall. Cek requirements.",
@@ -37,6 +37,7 @@ class StatusBar(QWidget):
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
 
+        # Header log
         log_hdr = QWidget()
         log_hdr.setObjectName("log_header")
         lh = QHBoxLayout(log_hdr)
@@ -57,12 +58,14 @@ class StatusBar(QWidget):
         lh.addWidget(clear_btn)
         root.addWidget(log_hdr)
 
+        # Area log
         self._log = QTextEdit()
         self._log.setObjectName("log_area")
         self._log.setReadOnly(True)
         self._log.setFixedHeight(108)
         root.addWidget(self._log)
 
+        # Bar bawah: status + progress
         bot = QWidget()
         bot.setObjectName("status_bar_widget")
         bot.setFixedHeight(46)
@@ -74,22 +77,18 @@ class StatusBar(QWidget):
         self._dot.setStyleSheet("color: #A0AAB0; font-size: 9px;")
         self._dot.setFixedWidth(14)
 
-        # Status label
         self._status_lbl = QLabel("Siap")
         self._status_lbl.setStyleSheet("color: #A0AAB0; font-size: 12px;")
 
-        # Time label
         self._time_lbl = QLabel("")
         self._time_lbl.setObjectName("status_time")
 
-        # Progress bar
         self._progress = QProgressBar()
         self._progress.setValue(0)
         self._progress.setFixedHeight(4)
         self._progress.setFixedWidth(180)
         self._progress.setTextVisible(False)
 
-        # Frame pct label
         self._frame_lbl = QLabel("")
         self._frame_lbl.setObjectName("status_time")
         self._frame_lbl.setFixedWidth(36)
@@ -103,9 +102,9 @@ class StatusBar(QWidget):
         bl.addWidget(self._progress)
         root.addWidget(bot)
 
-    def set_state(self, state: str):
+    def atur_status(self, state: str):
         self._current_state = state
-        dot_color, text, lbl_style = _STATE_CFG.get(state, _STATE_CFG["IDLE"])
+        dot_color, text, lbl_style = _KONFIGURASI_STATUS.get(state, _KONFIGURASI_STATUS["IDLE"])
 
         self._dot.setStyleSheet(f"color:{dot_color}; font-size:9px;")
         self._status_lbl.setStyleSheet(lbl_style + " font-size:12px;")
@@ -122,22 +121,23 @@ class StatusBar(QWidget):
         self._progress.setValue(pct)
         self._frame_lbl.setText(f"{pct}%")
 
-    def append_log(self, msg: str):
+    def tambah_log(self, msg: str):
         self._log.append(msg)
         cursor = self._log.textCursor()
         cursor.movePosition(QTextCursor.MoveOperation.End)
         self._log.setTextCursor(cursor)
 
-    def append_error(self, raw_msg: str):
-        for key, friendly in _ERROR_MAP.items():
+    def tambah_error(self, raw_msg: str):
+        # Coba cocokkan dengan pesan error yang sudah dikenal
+        for key, friendly in _PESAN_ERROR.items():
             if key.lower() in raw_msg.lower():
-                self.append_log(friendly)
+                self.tambah_log(friendly)
                 return
         first_line = raw_msg.strip().split("\n")[0]
-        self.append_log(f"❌  {first_line}")
+        self.tambah_log(f"❌  {first_line}")
 
     def clear(self):
         self._log.clear()
         self._progress.setValue(0)
         self._frame_lbl.setText("")
-        self.set_state("IDLE")
+        self.atur_status("IDLE")
