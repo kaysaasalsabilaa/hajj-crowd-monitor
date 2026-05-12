@@ -73,10 +73,10 @@ python run_app.py
 
 Aplikasi desktop akan terbuka. Langkah penggunaan:
 
-1. **Pilih video** — klik Browse dan pilih file video CCTV
-2. **Isi lokasi** — masukkan nama lokasi dan pilih koordinat dari peta
-3. **Klik Mulai Analisis** — sistem akan memproses video 
-4. **Lihat hasil** — pantau peta dan dashboard analitik yang diperbarui setiap detik
+1. **Pilih video** - klik Browse dan pilih file video CCTV
+2. **Isi lokasi** - masukkan nama lokasi dan pilih koordinat dari peta
+3. **Klik Mulai Analisis** - sistem akan memproses video 
+4. **Lihat hasil** - pantau peta dan dashboard analitik yang diperbarui setiap detik
 
 ---
 
